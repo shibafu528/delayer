@@ -48,6 +48,7 @@ module Delayer
         @busy = false
         @expire = 0
         @remain_hook = nil
+        @reserve_hook = nil
         @exception = nil
         @remain_received = false
         @lock = Monitor.new
@@ -191,11 +192,16 @@ module Delayer
           @last_reserve = procedure
         end
       end
+      @reserve_hook&.call([procedure.reserve_at - Process.clock_gettime(Process::CLOCK_MONOTONIC), 0].max)
       self
     end
 
     def register_remain_hook(&proc)
       @remain_hook = proc
+    end
+
+    def register_reserve_hook(&proc)
+      @reserve_hook = proc
     end
 
     def get_prev_point(priority)
